@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     profilePic:{
         type: String,
         default: ""
-    }
+    },
 },{timestamps: true});
 
 const User = mongoose.model("User", userSchema);
