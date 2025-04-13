@@ -6,16 +6,11 @@ const generateTokenAndSetCookie = (userId, res) => {
     // });
 
     const accessToken = jwt.sign(
-        { id: userId },
-        process.env.JWT_SECRET_ACCESS,
+        { userId },
+        process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "15d" }
     );
 
-    const refreshToken = jwt.sign(
-        { id: userId },
-        process.env.JWT_SECRET_REFRESH,
-        { expiresIn: "15d" }
-    );
 
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
@@ -23,14 +18,13 @@ const generateTokenAndSetCookie = (userId, res) => {
         sameSite: 'strict',
         maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
     });
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
-    });
 
-    return { accessToken, refreshToken };
+    
+    // console.log("Generated accessToken payload:", { userId });
+    // console.log("JWT_SECRET_USED:", process.env.ACCESS_TOKEN_SECRET);
+
+
+    // return { accessToken };
 }
 
 export default generateTokenAndSetCookie;

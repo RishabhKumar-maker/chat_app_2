@@ -2,36 +2,32 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
 const protectRoute = async (req, res, next) => {
-  try {
-    // 🛑 Use the correct cookie name
-    const token = req.cookies.accessToken;
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized: No token provided" });
-    }
+	try {
+		const token = req.cookies.accessToken;
 
-    // 🔓 Verify token
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); // match your token secret env
-    if (!decoded?.userId) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
-    }
+		if (!token) {
+			return res.status(401).json({ error: "Unauthorized - No Token Provided" });
+		}
 
-    // 👤 Fetch user without password and token fields
-    const user = await User.findById(decoded.userId).select("-password -refreshToken");
-    if (!user) {
-      return res.status(401).json({ message: "Unauthorized: User not found" });
-    }
+		const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error("Error in protectRoute middleware:", error.message);
+		if (!decoded) {
+			return res.status(401).json({ error: "Unauthorized - Invalid Token" });
+		}
 
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Session expired. Please login again." });
-    }
+		const user = await User.findById(decoded.userId).select("-password");
 
-    return res.status(500).json({ message: "Server error in auth middleware" });
-  }
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		req.user = user;
+
+		next();
+	} catch (error) {
+		console.log("Error in protectRoute middleware: ", error.message);
+		res.status(500).json({ error: "Internal server error" });
+	}
 };
 
 export default protectRoute;
